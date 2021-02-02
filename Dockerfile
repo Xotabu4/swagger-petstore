@@ -1,4 +1,4 @@
-FROM openjdk:8-jre
+FROM openjdk:11-jre
 
 WORKDIR /petstore
 COPY target/lib/jetty-runner* /petstore/jetty-runner.jar

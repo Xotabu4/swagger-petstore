@@ -21,6 +21,7 @@ import com.sun.jersey.multipart.FormDataParam;
 import io.swagger.annotations.*;
 import io.swagger.sample.data.PetData;
 import io.swagger.sample.exception.NotFoundException;
+import io.swagger.sample.model.AbstractApiResponse;
 import io.swagger.sample.model.Pet;
 import io.swagger.util.Json;
 import org.apache.commons.io.IOUtils;
@@ -77,7 +78,7 @@ public class PetResource {
     @ApiParam(value = "Pet id to delete", required = true)@PathParam("petId") Long petId) {
     LOGGER.debug("deletePet {}", petId);
     if (petData.deletePet(petId)) {
-      return Response.ok().entity(new io.swagger.sample.model.ApiResponse(200, String.valueOf(petId))).build();
+      return Response.ok().entity(new AbstractApiResponse(String.valueOf(petId))).build();
     } else {
      return Response.status(Response.Status.NOT_FOUND).build();
     }
@@ -88,7 +89,7 @@ public class PetResource {
   @Consumes({MediaType.MULTIPART_FORM_DATA})
   @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(value = "uploads an image",
-    response = io.swagger.sample.model.ApiResponse.class)
+    response = AbstractApiResponse.class)
   public Response uploadFile(
     @ApiParam(value = "ID of pet to update", required = true) @PathParam("petId") Long petId,
     @ApiParam(value = "Additional data to pass to server") @FormDataParam("additionalMetadata") String testString,
@@ -100,8 +101,7 @@ public class PetResource {
       LOGGER.info("uploading to " + uploadedFileLocation);
       IOUtils.copy(inputStream, new FileOutputStream(uploadedFileLocation));
       String msg = "additionalMetadata: " + testString + "\nFile uploaded to " + uploadedFileLocation + ", " + (new java.io.File(uploadedFileLocation)).length() + " bytes";
-      io.swagger.sample.model.ApiResponse output = new io.swagger.sample.model.ApiResponse(200, msg);
-      return Response.status(200).entity(output).build();
+      return Response.status(200).entity(new AbstractApiResponse(msg)).build();
     }
     catch (Exception e) {
       return Response.status(500).build();
@@ -110,12 +110,16 @@ public class PetResource {
 
   @POST
   @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-  @ApiOperation(value = "Add a new pet to the store")
+  @ApiOperation(value = "Add a new pet to the store",
+    notes = "Returns created pet",
+    response = Pet.class,
+    authorizations = @Authorization(value = "api_key")
+  )
   @ApiResponses(value = { @ApiResponse(code = 405, message = "Invalid input") })
   public Response addPet(
       @ApiParam(value = "Pet object that needs to be added to the store", required = true) Pet pet) {
     if (pet == null) {
-      return Response.status(405).entity(new io.swagger.sample.model.ApiResponse(405, "no data")).build();
+      return Response.status(405).entity(new AbstractApiResponse("no data")).build();
     }
     try {
       LOGGER.info("addPet ID {} STATUS {}", pet.getId(), pet.getStatus());
@@ -131,14 +135,19 @@ public class PetResource {
 
   @PUT
   @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-  @ApiOperation(value = "Update an existing pet")
+  @ApiOperation(
+    value = "Update an existing pet",
+    notes = "Returns updated pet",
+    response = Pet.class,
+    authorizations = @Authorization(value = "api_key")
+  )
   @ApiResponses(value = { @ApiResponse(code = 400, message = "Invalid ID supplied"),
       @ApiResponse(code = 404, message = "Pet not found"),
       @ApiResponse(code = 405, message = "Validation exception") })
   public Response updatePet(
       @ApiParam(value = "Pet object that needs to be added to the store", required = true) Pet pet) {
     if (pet == null) {
-      return Response.status(405).entity(new io.swagger.sample.model.ApiResponse(405, "no data")).build();
+      return Response.status(405).entity(new AbstractApiResponse("no data")).build();
     }
     try {
       LOGGER.info("updatePet ID {} STATUS {}", pet.getId(), pet.getStatus());
@@ -158,7 +167,9 @@ public class PetResource {
     notes = "Multiple status values can be provided with comma separated strings",
     response = Pet.class,
     responseContainer = "List")
-  @ApiResponses(value = { @ApiResponse(code = 400, message = "Invalid status value") })
+  @ApiResponses(value = {
+    @ApiResponse(code = 400, message = "Invalid status value") 
+  })
   public Response findPetsByStatus(
       @ApiParam(value = "Status values that need to be considered for filter", required = true, defaultValue = "available", allowableValues = "available,pending,sold", allowMultiple = true) @QueryParam("status") String status) {
     LOGGER.debug("findPetsByStatus {}", status);
@@ -173,36 +184,10 @@ public class PetResource {
     response = Pet.class,
     responseContainer = "List")
   @ApiResponses(value = { @ApiResponse(code = 400, message = "Invalid tag value") })
-  @Deprecated
   public Response findPetsByTags(
       @ApiParam(value = "Tags to filter by", required = true, allowMultiple = true) @QueryParam("tags") String tags) {
     LOGGER.debug("findPetsByTags {}", tags);
     List<Pet> pets = petData.findPetByTags(tags);
     return Response.ok(pets.toArray(new Pet[pets.size()])).build();
-  }
-
-  @POST
-  @Path("/{petId}")
-  @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
-  @ApiOperation(value = "Updates a pet in the store with form data",
-    consumes = MediaType.APPLICATION_FORM_URLENCODED)
-  @ApiResponses(value = {
-    @ApiResponse(code = 405, message = "Invalid input")})
-  public Response  updatePetWithForm (
-   @ApiParam(value = "ID of pet that needs to be updated", required = true)@PathParam("petId") Long petId,
-   @ApiParam(value = "Updated name of the pet", required = false)@FormParam("name") String name,
-   @ApiParam(value = "Updated status of the pet", required = false)@FormParam("status") String status) {
-    LOGGER.info("updatePetWithForm {} {}", petId, name);
-    Pet pet = petData.getPetById(petId);
-    if(pet != null) {
-      if(name != null && !"".equals(name))
-        pet.setName(name);
-      if(status != null && !"".equals(status))
-        pet.setStatus(status);
-      petData.addPet(pet);
-      return Response.ok().entity(new io.swagger.sample.model.ApiResponse(200, String.valueOf(petId))).build();
-    }
-    else
-      return Response.status(404).entity(new io.swagger.sample.model.ApiResponse(404, "not found")).build();
   }
 }

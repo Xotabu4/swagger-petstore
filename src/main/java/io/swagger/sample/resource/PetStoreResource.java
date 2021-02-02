@@ -20,6 +20,7 @@ import io.swagger.annotations.*;
 import io.swagger.sample.data.PetData;
 import io.swagger.sample.data.StoreData;
 import io.swagger.sample.exception.BadRequestException;
+import io.swagger.sample.model.AbstractApiResponse;
 import io.swagger.sample.model.Order;
 import io.swagger.sample.exception.NotFoundException;
 import io.swagger.util.Json;
@@ -74,7 +75,7 @@ public class PetStoreResource {
 
   @POST
   @Path("/order")
-  @ApiOperation(value = "Place an order for a pet", consumes = "application/json")
+  @ApiOperation(value = "Place an order for a pet", consumes = "application/json", response = Order.class)
   @ApiResponses({ @ApiResponse(code = 400, message = "Invalid Order") })
   public Order placeOrder(
       @ApiParam(value = "order placed for purchasing the pet",
@@ -105,9 +106,9 @@ public class PetStoreResource {
       @PathParam("orderId") Long orderId) {
     LOGGER.debug("deleteOrder {}", orderId);
     if (storeData.deleteOrder(orderId)) {
-      return Response.ok().entity(new io.swagger.sample.model.ApiResponse(200, String.valueOf(orderId))).build();
+      return Response.ok().entity(new AbstractApiResponse(String.valueOf(orderId))).build();
     } else {
-      return Response.status(Response.Status.NOT_FOUND).entity(new io.swagger.sample.model.ApiResponse(Response.Status.NOT_FOUND.getStatusCode(), String.valueOf("Order Not Found"))).build();
+      return Response.status(Response.Status.NOT_FOUND).entity(new AbstractApiResponse(String.valueOf("Order Not Found"))).build();
     }
   }
 }

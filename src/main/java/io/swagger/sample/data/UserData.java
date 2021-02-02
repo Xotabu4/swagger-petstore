@@ -23,6 +23,8 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.ObjectIdGenerator.IdKey;
+
 public class UserData {
   static Map<Long, User> users = Collections.synchronizedMap(new LinkedHashMap<Long, User>());
 
@@ -61,6 +63,10 @@ public class UserData {
     return null;
   }
 
+  public User findUserById(long userId) {
+    return users.get(Long.valueOf(userId));
+  }
+
   public void addUser(User user) {
     if(user.getUsername() == null)
       return;
@@ -91,6 +97,10 @@ public class UserData {
       }
     }
     return false;
+  }
+
+  public boolean removeUserById(long userId) {
+    return users.remove(userId) != null;
   }
 
   private static User createUser(long id, String username, String firstName,

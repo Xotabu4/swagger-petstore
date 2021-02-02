@@ -29,11 +29,6 @@ public class Bootstrap extends HttpServlet {
     Swagger swagger = new Swagger().info(info);
     swagger.externalDocs(new ExternalDocs("Find out more about Swagger", "http://swagger.io"));
     swagger.securityDefinition("api_key", new ApiKeyAuthDefinition("api_key", In.HEADER));
-    swagger.securityDefinition("petstore_auth",
-      new OAuth2Definition()
-        .implicit("https://petstore.swagger.io/oauth/authorize")
-        .scope("read:pets", "read your pets")
-        .scope("write:pets", "modify pets in your account"));
     swagger.tag(new Tag()
       .name("pet")
       .description("Everything about your Pets")
