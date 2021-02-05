@@ -33,6 +33,7 @@ public class Pet {
   private String status;
 
   @XmlElement(name = "id")
+  @ApiModelProperty(required = true)
   public long getId() {
     return id;
   }
@@ -42,6 +43,7 @@ public class Pet {
   }
 
   @XmlElement(name = "category")
+  @ApiModelProperty(required = true)
   public Category getCategory() {
     return category;
   }
@@ -72,6 +74,7 @@ public class Pet {
 
   @XmlElementWrapper(name = "tags")
   @XmlElement(name = "tag")
+  @ApiModelProperty(required = true)
   public List<Tag> getTags() {
     return tags;
   }
@@ -81,7 +84,7 @@ public class Pet {
   }
 
   @XmlElement(name = "status")
-  @ApiModelProperty(value = "pet status in the store", allowableValues = "available,pending,sold")
+  @ApiModelProperty(required = true, value = "pet status in the store", allowableValues = "available,pending,sold")
   public String getStatus() {
     return status;
   }

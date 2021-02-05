@@ -32,6 +32,7 @@ public class User {
   private int userStatus;
 
   @XmlElement(name = "id")
+  @ApiModelProperty(required = true)
   public long getId() {
     return id;
   }
@@ -41,6 +42,7 @@ public class User {
   }
 
   @XmlElement(name = "firstName")
+  @ApiModelProperty(required = true)
   public String getFirstName() {
     return firstName;
   }
@@ -50,6 +52,7 @@ public class User {
   }
 
   @XmlElement(name = "username")
+  @ApiModelProperty(required = true)
   public String getUsername() {
     return username;
   }
@@ -59,6 +62,7 @@ public class User {
   }
 
   @XmlElement(name = "lastName")
+  @ApiModelProperty(required = true)
   public String getLastName() {
     return lastName;
   }
@@ -68,6 +72,7 @@ public class User {
   }
 
   @XmlElement(name = "email")
+  @ApiModelProperty(required = true)
   public String getEmail() {
     return email;
   }
@@ -77,6 +82,7 @@ public class User {
   }
 
   @XmlElement(name = "password")
+  @ApiModelProperty(required = true)
   public String getPassword() {
     return password;
   }
@@ -86,6 +92,7 @@ public class User {
   }
 
   @XmlElement(name = "phone")
+  @ApiModelProperty(required = true)
   public String getPhone() {
     return phone;
   }
@@ -95,7 +102,7 @@ public class User {
   }
 
   @XmlElement(name = "userStatus")
-  @ApiModelProperty(value = "User Status", allowableValues = "1-registered,2-active,3-closed")
+  @ApiModelProperty(required = true, value = "User Status", allowableValues = "1-registered,2-active,3-closed")
   public int getUserStatus() {
     return userStatus;
   }
