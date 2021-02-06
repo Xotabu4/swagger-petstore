@@ -21,6 +21,7 @@ import io.swagger.sample.data.PetData;
 import io.swagger.sample.data.StoreData;
 import io.swagger.sample.exception.BadRequestException;
 import io.swagger.sample.model.AbstractApiResponse;
+import io.swagger.sample.model.Inventory;
 import io.swagger.sample.model.Order;
 import io.swagger.sample.exception.NotFoundException;
 import io.swagger.util.Json;
@@ -45,8 +46,7 @@ public class PetStoreResource {
   @Produces({MediaType.APPLICATION_JSON})
   @ApiOperation(value = "Returns pet inventories by status",
     notes = "Returns a map of status codes to quantities",
-    response = Integer.class,
-    responseContainer = "map",
+    response = Inventory.class,
     authorizations = @Authorization(value = "api_key")
   )
   public java.util.Map<String, Integer> getInventory() {

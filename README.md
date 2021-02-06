@@ -31,3 +31,11 @@ based on api-key.  There are two keys defined in the sample app:
 
 When no key is applied, the "default-key" is applied to all operations.  If the "special-key" is entered, a
 number of other resources are shown in the UI, including sample CRUD operations.
+
+
+
+## My notes:
+Publish to docker:
+mvn package
+docker build -t ibnxotabu4/swagger-api-petstore .
+docker push ibnxotabu4/swagger-api-petstore
