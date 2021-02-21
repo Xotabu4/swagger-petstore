@@ -24,9 +24,6 @@ import io.swagger.sample.model.AbstractApiResponse;
 import io.swagger.sample.model.Inventory;
 import io.swagger.sample.model.Order;
 import io.swagger.sample.util.AuthFilter;
-import io.swagger.util.Json;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.MediaType;
@@ -38,8 +35,6 @@ import javax.ws.rs.*;
 public class PetStoreResource {
   static StoreData storeData = new StoreData();
   static PetData petData = new PetData();
-
-  private static Logger LOGGER = LoggerFactory.getLogger(PetStoreResource.class);
 
   @GET
   @Path("/inventory")
