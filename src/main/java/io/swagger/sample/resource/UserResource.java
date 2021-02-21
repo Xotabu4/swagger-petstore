@@ -49,7 +49,7 @@ public class UserResource {
   @Path("/create")
   @ApiOperation(value = "Create user", notes = "This can only be done by admin", consumes = "application/json", response = User.class)
   @ApiResponses(value = { @ApiResponse(code = 400, message = "Wrong user structure") })
-  public Response createUser(@ApiParam() @HeaderParam("token") String token,
+  public Response createUser(@ApiParam() @HeaderParam("token") @DefaultValue("") String token,
       @ApiParam(value = "User to create", required = true) User user) throws ApiException {
     AuthFilter.assertAdmin(token);
     if (user == null) {
@@ -63,7 +63,7 @@ public class UserResource {
   @ApiOperation(value = "Update user", notes = "This can only be done by the logged in user.", consumes = "application/json", response = User.class)
   @ApiResponses(value = { @ApiResponse(code = 400, message = "Invalid user supplied"),
       @ApiResponse(code = 404, message = "User not found") })
-  public Response updateUser(@ApiParam() @HeaderParam("token") String token,
+  public Response updateUser(@ApiParam() @HeaderParam("token") @DefaultValue("") String token,
       @ApiParam(value = "Updated user object", required = true) User user) throws ApiException {
     AuthFilter.assertAdmin(token);
     if (user == null) {
@@ -77,7 +77,7 @@ public class UserResource {
   @Path("/{id}")
   @ApiOperation(value = "Delete user by id", notes = "This can only be done by the logged in user.")
   @ApiResponses(value = { @ApiResponse(code = 404, message = "User not found") })
-  public Response deleteUser(@ApiParam() @HeaderParam("token") String token,
+  public Response deleteUser(@ApiParam() @HeaderParam("token") @DefaultValue("") String token,
       @ApiParam(value = "User id to delete", required = true) @PathParam("id") long id) throws ApiException {
     AuthFilter.assertAdmin(token);
     if (userData.removeUserById(id)) {
@@ -92,7 +92,7 @@ public class UserResource {
   @ApiOperation(value = "Get user by id", response = User.class)
   @ApiResponses(value = { @ApiResponse(code = 401, message = "Must have admin permissions to access this endpoint"),
       @ApiResponse(code = 404, message = "User not found") })
-  public Response getUserById(@ApiParam() @HeaderParam("token") String token,
+  public Response getUserById(@ApiParam() @HeaderParam("token") @DefaultValue("") String token,
       @ApiParam(value = "user id", required = true) @PathParam("id") Long userId) throws ApiException {
 
     AuthFilter.assertAdmin(token);

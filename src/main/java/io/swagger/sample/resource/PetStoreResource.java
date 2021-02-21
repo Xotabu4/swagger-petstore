@@ -43,7 +43,7 @@ public class PetStoreResource {
   @ApiResponses(value = { @ApiResponse(code = 400, message = "Invalid ID supplied"),
       @ApiResponse(code = 401, message = "Must have admin permissions to access this endpoint") })
   public java.util.Map<String, Integer> getInventory(
-      @ApiParam(value = "Admin only", required = true) @HeaderParam("token") String token) throws ApiException {
+      @ApiParam(value = "Admin only", required = true) @HeaderParam("token") @DefaultValue("") String token) throws ApiException {
     AuthFilter.assertAdmin(token);
     return petData.getInventoryByStatus();
   }
@@ -53,7 +53,7 @@ public class PetStoreResource {
   @ApiOperation(value = "Find purchase order by ID", notes = "For valid response try integer IDs with value >= 1 and <= 10", response = Order.class)
   @ApiResponses(value = { @ApiResponse(code = 401, message = "Must have admin permissions to access this endpoint"),
       @ApiResponse(code = 404, message = "Order not found") })
-  public Response getOrderById(@ApiParam(value = "Admin only", required = true) @HeaderParam("token") String token,
+  public Response getOrderById(@ApiParam(value = "Admin only", required = true) @HeaderParam("token") @DefaultValue("") String token,
       @ApiParam(value = "ID of pet that needs to be fetched", required = true) @PathParam("orderId") Long orderId)
       throws ApiException {
     AuthFilter.assertAdmin(token);
@@ -69,7 +69,7 @@ public class PetStoreResource {
   @ApiOperation(value = "Place an order for a pet", consumes = "application/json", response = Order.class)
   @ApiResponses({ @ApiResponse(code = 401, message = "Must have user permissions to access this endpoint"),
       @ApiResponse(code = 400, message = "Wrong Order structure") })
-  public Order placeOrder(@ApiParam(value = "User only", required = true) @HeaderParam("token") String token,
+  public Order placeOrder(@ApiParam(value = "User only", required = true) @HeaderParam("token") @DefaultValue("") String token,
       @ApiParam(value = "order placed for purchasing the pet", required = true) Order order) throws ApiException {
     AuthFilter.assertUser(token);
     if (order == null) {
@@ -84,7 +84,7 @@ public class PetStoreResource {
   @ApiOperation(value = "Delete purchase order by ID")
   @ApiResponses(value = { @ApiResponse(code = 401, message = "Must have admin permissions to access this endpoint"),
       @ApiResponse(code = 404, message = "Order not found") })
-  public Response deleteOrder(@ApiParam(value = "Admin only", required = true) @HeaderParam("token") String token,
+  public Response deleteOrder(@ApiParam(value = "Admin only", required = true) @HeaderParam("token") @DefaultValue("") String token,
       @ApiParam(value = "ID of the order that needs to be deleted", required = true) @PathParam("orderId") Long orderId)
       throws ApiException {
     AuthFilter.assertAdmin(token);

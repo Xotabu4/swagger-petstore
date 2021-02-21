@@ -58,7 +58,7 @@ public class PetResource {
   @ApiOperation(value = "Deletes a pet", response = AbstractApiResponse.class)
   @ApiResponses(value = { @ApiResponse(code = 401, message = "Must have admin permissions to access this endpoint"),
       @ApiResponse(code = 400, message = "Invalid ID supplied"), @ApiResponse(code = 404, message = "Pet not found") })
-  public Response deletePet(@ApiParam(value = "Admin only", required = true) @HeaderParam("token") String token,
+  public Response deletePet(@ApiParam(value = "Admin only", required = true) @HeaderParam("token") @DefaultValue("") String token,
       @ApiParam(value = "Pet id to delete", required = true) @PathParam("petId") Long petId) throws ApiException {
     AuthFilter.assertAdmin(token);
     if (petData.deletePet(petId)) {
@@ -74,7 +74,7 @@ public class PetResource {
   @ApiOperation(value = "uploads an image", response = AbstractApiResponse.class)
   @ApiResponses(value = { @ApiResponse(code = 401, message = "Must have admin permissions to access this endpoint"),
       @ApiResponse(code = 500, message = "Cannot process file") })
-  public Response uploadFile(@ApiParam(value = "Admin only", required = true) @HeaderParam("token") String token,
+  public Response uploadFile(@ApiParam(value = "Admin only", required = true) @HeaderParam("token") @DefaultValue("") String token,
       @ApiParam(value = "ID of pet to update", required = true) @PathParam("petId") Long petId,
       @ApiParam(value = "file to upload") @FormDataParam("file") InputStream inputStream,
       @ApiParam(value = "file detail") @FormDataParam("file") FormDataContentDisposition fileDetail)
@@ -96,7 +96,7 @@ public class PetResource {
   @ApiOperation(value = "Add a new pet to the store", notes = "Returns created pet", response = Pet.class)
   @ApiResponses(value = { @ApiResponse(code = 401, message = "Must have admin permissions to access this endpoint"),
       @ApiResponse(code = 400, message = "Wrong pet structure") })
-  public Response addPet(@ApiParam(value = "Admin only", required = true) @HeaderParam("token") String token,
+  public Response addPet(@ApiParam(value = "Admin only", required = true) @HeaderParam("token") @DefaultValue("") String token,
       @ApiParam(value = "Pet object that needs to be added to the store", required = true) Pet pet)
       throws ApiException {
     AuthFilter.assertAdmin(token);
@@ -112,7 +112,7 @@ public class PetResource {
   @ApiOperation(value = "Update an existing pet", notes = "Returns updated pet", response = Pet.class)
   @ApiResponses(value = { @ApiResponse(code = 401, message = "Must have admin permissions to access this endpoint"),
       @ApiResponse(code = 400, message = "Wrong pet structure") })
-  public Response updatePet(@ApiParam(value = "Admin only", required = true) @HeaderParam("token") String token,
+  public Response updatePet(@ApiParam(value = "Admin only", required = true) @HeaderParam("token") @DefaultValue("") String token,
       @ApiParam(value = "Pet object that needs to be added to the store", required = true) Pet pet)
       throws ApiException {
     AuthFilter.assertAdmin(token);
