@@ -70,9 +70,11 @@ public class PetResource {
 
   @DELETE
   @Path("/{petId}")
-  @ApiOperation(value = "Deletes a pet")
-  @ApiResponses(value = { @ApiResponse(code = 400, message = "Invalid ID supplied"),
-          @ApiResponse(code = 404, message = "Pet not found") })
+  @ApiOperation(value = "Deletes a pet", response = AbstractApiResponse.class)
+  @ApiResponses(value = {
+    @ApiResponse(code = 400, message = "Invalid ID supplied"),
+    @ApiResponse(code = 404, message = "Pet not found") 
+  })
   public Response deletePet(
     @ApiParam() @HeaderParam("api_key") String apiKey,
     @ApiParam(value = "Pet id to delete", required = true)@PathParam("petId") Long petId) {
