@@ -20,13 +20,11 @@ import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
 import io.swagger.annotations.*;
 import io.swagger.sample.data.PetData;
-import io.swagger.sample.exception.NotFoundException;
+import io.swagger.sample.exception.ApiException;
 import io.swagger.sample.model.AbstractApiResponse;
 import io.swagger.sample.model.Pet;
-import io.swagger.util.Json;
+import io.swagger.sample.util.AuthFilter;
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -36,128 +34,90 @@ import java.io.InputStream;
 import java.util.List;
 
 @Path("/pet")
-@Api(value = "/pet", authorizations = {
-  @Authorization(value = "petstore_auth",
-  scopes = {
-    @AuthorizationScope(scope = "write:pets", description = "modify pets in your account"),
-    @AuthorizationScope(scope = "read:pets", description = "read your pets")
-  })
-}, tags = "pet")
-@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+@Api(value = "/pet")
+@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 public class PetResource {
-  private static Logger LOGGER = LoggerFactory.getLogger(PetResource.class);
   static PetData petData = new PetData();
 
   @GET
   @Path("/{petId}")
-  @ApiOperation(value = "Find pet by ID",
-    notes = "Returns a single pet",
-    response = Pet.class,
-    authorizations = @Authorization(value = "api_key")
-  )
+  @ApiOperation(value = "Find pet by ID", notes = "Returns a single pet", response = Pet.class)
   @ApiResponses(value = { @ApiResponse(code = 400, message = "Invalid ID supplied"),
-    @ApiResponse(code = 404, message = "Pet not found") })
-  public Response getPetById(
-      @ApiParam(value = "ID of pet to return") @PathParam("petId") Long petId)
-      throws NotFoundException {
-    LOGGER.debug("getPetById {}", petId);
+      @ApiResponse(code = 404, message = "Pet not found") })
+  public Response getPetById(@ApiParam(value = "ID of pet to return") @PathParam("petId") Long petId)
+      throws ApiException {
     Pet pet = petData.getPetById(petId);
-    if (null != pet)
+    if (null != pet) {
       return Response.ok().entity(pet).build();
-    else
-      throw new NotFoundException(404, "Pet not found");
+    }
+    throw new ApiException(404, "Pet not found");
   }
 
   @DELETE
   @Path("/{petId}")
   @ApiOperation(value = "Deletes a pet", response = AbstractApiResponse.class)
-  @ApiResponses(value = {
-    @ApiResponse(code = 400, message = "Invalid ID supplied"),
-    @ApiResponse(code = 404, message = "Pet not found") 
-  })
-  public Response deletePet(
-    @ApiParam() @HeaderParam("api_key") String apiKey,
-    @ApiParam(value = "Pet id to delete", required = true)@PathParam("petId") Long petId) {
-    LOGGER.debug("deletePet {}", petId);
+  @ApiResponses(value = { @ApiResponse(code = 401, message = "Must have admin permissions to access this endpoint"),
+      @ApiResponse(code = 400, message = "Invalid ID supplied"), @ApiResponse(code = 404, message = "Pet not found") })
+  public Response deletePet(@ApiParam(value = "Admin only", required = true) @HeaderParam("token") String token,
+      @ApiParam(value = "Pet id to delete", required = true) @PathParam("petId") Long petId) throws ApiException {
+    AuthFilter.assertAdmin(token);
     if (petData.deletePet(petId)) {
       return Response.ok().entity(new AbstractApiResponse(String.valueOf(petId))).build();
-    } else {
-     return Response.status(Response.Status.NOT_FOUND).build();
     }
+    throw new ApiException(404, "Pet not found");
   }
 
   @POST
   @Path("/{petId}/uploadImage")
-  @Consumes({MediaType.MULTIPART_FORM_DATA})
-  @Produces({MediaType.APPLICATION_JSON})
-  @ApiOperation(value = "uploads an image",
-    response = AbstractApiResponse.class)
-  public Response uploadFile(
-    @ApiParam(value = "ID of pet to update", required = true) @PathParam("petId") Long petId,
-    @ApiParam(value = "Additional data to pass to server") @FormDataParam("additionalMetadata") String testString,
-    @ApiParam(value = "file to upload") @FormDataParam("file") InputStream inputStream,
-    @ApiParam(value = "file detail") @FormDataParam("file") FormDataContentDisposition fileDetail) {
+  @Consumes({ MediaType.MULTIPART_FORM_DATA })
+  @Produces({ MediaType.APPLICATION_JSON })
+  @ApiOperation(value = "uploads an image", response = AbstractApiResponse.class)
+  @ApiResponses(value = { @ApiResponse(code = 401, message = "Must have admin permissions to access this endpoint"),
+      @ApiResponse(code = 500, message = "Cannot process file") })
+  public Response uploadFile(@ApiParam(value = "Admin only", required = true) @HeaderParam("token") String token,
+      @ApiParam(value = "ID of pet to update", required = true) @PathParam("petId") Long petId,
+      @ApiParam(value = "file to upload") @FormDataParam("file") InputStream inputStream,
+      @ApiParam(value = "file detail") @FormDataParam("file") FormDataContentDisposition fileDetail)
+      throws ApiException {
+    AuthFilter.assertAdmin(token);
     try {
-      LOGGER.debug("uploadFile {} {}", petId, testString);
       String uploadedFileLocation = "./" + fileDetail.getFileName();
-      LOGGER.info("uploading to " + uploadedFileLocation);
       IOUtils.copy(inputStream, new FileOutputStream(uploadedFileLocation));
-      String msg = "additionalMetadata: " + testString + "\nFile uploaded to " + uploadedFileLocation + ", " + (new java.io.File(uploadedFileLocation)).length() + " bytes";
+      String msg = "additionalMetadata: \nFile uploaded to " + uploadedFileLocation + ", "
+          + (new java.io.File(uploadedFileLocation)).length() + " bytes";
       return Response.status(200).entity(new AbstractApiResponse(msg)).build();
-    }
-    catch (Exception e) {
-      return Response.status(500).build();
+    } catch (Exception e) {
+      throw new ApiException(500, "Cannot process file");
     }
   }
 
   @POST
-  @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-  @ApiOperation(value = "Add a new pet to the store",
-    notes = "Returns created pet",
-    response = Pet.class,
-    authorizations = @Authorization(value = "api_key")
-  )
-  @ApiResponses(value = { @ApiResponse(code = 405, message = "Invalid input") })
-  public Response addPet(
-      @ApiParam(value = "Pet object that needs to be added to the store", required = true) Pet pet) {
+  @Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @ApiOperation(value = "Add a new pet to the store", notes = "Returns created pet", response = Pet.class)
+  @ApiResponses(value = { @ApiResponse(code = 401, message = "Must have admin permissions to access this endpoint"),
+      @ApiResponse(code = 400, message = "Wrong pet structure") })
+  public Response addPet(@ApiParam(value = "Admin only", required = true) @HeaderParam("token") String token,
+      @ApiParam(value = "Pet object that needs to be added to the store", required = true) Pet pet)
+      throws ApiException {
+    AuthFilter.assertAdmin(token);
     if (pet == null) {
-      return Response.status(405).entity(new AbstractApiResponse("no data")).build();
-    }
-    try {
-      LOGGER.info("addPet ID {} STATUS {}", pet.getId(), pet.getStatus());
-      if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("addPet {}", Json.mapper().writeValueAsString(pet));
-      }
-    } catch (Throwable e) {
-      e.printStackTrace();
+      throw new ApiException(400, "Wrong pet structure");
     }
     Pet updatedPet = petData.addPet(pet);
     return Response.ok().entity(updatedPet).build();
   }
 
   @PUT
-  @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-  @ApiOperation(
-    value = "Update an existing pet",
-    notes = "Returns updated pet",
-    response = Pet.class,
-    authorizations = @Authorization(value = "api_key")
-  )
-  @ApiResponses(value = { @ApiResponse(code = 400, message = "Invalid ID supplied"),
-      @ApiResponse(code = 404, message = "Pet not found"),
-      @ApiResponse(code = 405, message = "Validation exception") })
-  public Response updatePet(
-      @ApiParam(value = "Pet object that needs to be added to the store", required = true) Pet pet) {
+  @Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @ApiOperation(value = "Update an existing pet", notes = "Returns updated pet", response = Pet.class)
+  @ApiResponses(value = { @ApiResponse(code = 401, message = "Must have admin permissions to access this endpoint"),
+      @ApiResponse(code = 400, message = "Wrong pet structure") })
+  public Response updatePet(@ApiParam(value = "Admin only", required = true) @HeaderParam("token") String token,
+      @ApiParam(value = "Pet object that needs to be added to the store", required = true) Pet pet)
+      throws ApiException {
+    AuthFilter.assertAdmin(token);
     if (pet == null) {
-      return Response.status(405).entity(new AbstractApiResponse("no data")).build();
-    }
-    try {
-      LOGGER.info("updatePet ID {} STATUS {}", pet.getId(), pet.getStatus());
-      if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("updatePet {}", Json.mapper().writeValueAsString(pet));
-      }
-    } catch (Throwable e) {
-      e.printStackTrace();
+      throw new ApiException(400, "Wrong pet structure");
     }
     Pet updatedPet = petData.addPet(pet);
     return Response.ok().entity(updatedPet).build();
@@ -165,30 +125,20 @@ public class PetResource {
 
   @GET
   @Path("/findByStatus")
-  @ApiOperation(value = "Finds Pets by status",
-    notes = "Multiple status values can be provided with comma separated strings",
-    response = Pet.class,
-    responseContainer = "List")
-  @ApiResponses(value = {
-    @ApiResponse(code = 400, message = "Invalid status value") 
-  })
+  @ApiOperation(value = "Finds Pets by status", notes = "Multiple status values can be provided with comma separated strings", response = Pet.class, responseContainer = "List")
+  @ApiResponses(value = { @ApiResponse(code = 400, message = "Invalid status value") })
   public Response findPetsByStatus(
       @ApiParam(value = "Status values that need to be considered for filter", required = true, defaultValue = "available", allowableValues = "available,pending,sold", allowMultiple = true) @QueryParam("status") String status) {
-    LOGGER.debug("findPetsByStatus {}", status);
     List<Pet> pets = petData.findPetByStatus(status);
     return Response.ok(pets.toArray(new Pet[pets.size()])).build();
   }
 
   @GET
   @Path("/findByTags")
-  @ApiOperation(value = "Finds Pets by tags",
-    notes = "Multiple tags can be provided with comma separated strings. Use tag1, tag2, tag3 for testing.",
-    response = Pet.class,
-    responseContainer = "List")
+  @ApiOperation(value = "Finds Pets by tags", notes = "Multiple tags can be provided with comma separated strings. Use tag1, tag2, tag3 for testing.", response = Pet.class, responseContainer = "List")
   @ApiResponses(value = { @ApiResponse(code = 400, message = "Invalid tag value") })
   public Response findPetsByTags(
       @ApiParam(value = "Tags to filter by", required = true, allowMultiple = true) @QueryParam("tags") String tags) {
-    LOGGER.debug("findPetsByTags {}", tags);
     List<Pet> pets = petData.findPetByTags(tags);
     return Response.ok(pets.toArray(new Pet[pets.size()])).build();
   }

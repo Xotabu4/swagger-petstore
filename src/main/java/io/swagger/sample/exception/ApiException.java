@@ -17,9 +17,9 @@
 package io.swagger.sample.exception;
 
 public class ApiException extends Exception{
-  private int code;
+  public int statusCode;
   public ApiException (int code, String msg) {
     super(msg);
-    this.code = code;
+    this.statusCode = code;
   }
 }

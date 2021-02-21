@@ -17,13 +17,10 @@
 package io.swagger.sample.resource;
 
 import io.swagger.sample.exception.ApiException;
-import io.swagger.sample.exception.BadRequestException;
-import io.swagger.sample.exception.NotFoundException;
 import io.swagger.sample.model.AbstractApiResponse;
 
 import javax.ws.rs.ext.*;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
 @Provider
 public class SampleExceptionMapper implements ExceptionMapper<Exception> {
@@ -36,18 +33,10 @@ public class SampleExceptionMapper implements ExceptionMapper<Exception> {
     } else if (exception instanceof com.fasterxml.jackson.core.JsonParseException) {
       return Response.status(400)
           .entity(new AbstractApiResponse("bad input")).build();
-    } else if (exception instanceof NotFoundException) {
-      return Response
-          .status(Status.NOT_FOUND)
-          .entity(new AbstractApiResponse(exception.getMessage())).build();
-    } else if (exception instanceof BadRequestException) {
-      return Response
-          .status(Status.BAD_REQUEST)
-          .entity(new AbstractApiResponse(exception
-              .getMessage())).build();
     } else if (exception instanceof ApiException) {
+      ApiException apiException = (ApiException) exception;
       return Response
-          .status(Status.BAD_REQUEST)
+          .status(apiException.statusCode)
           .entity(new AbstractApiResponse(exception
               .getMessage())).build();
     } else {
