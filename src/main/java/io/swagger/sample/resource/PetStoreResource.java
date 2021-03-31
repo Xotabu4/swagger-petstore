@@ -75,7 +75,6 @@ public class PetStoreResource {
     if (order == null) {
       throw new ApiException(400, "Wrong Order structure");
     }
-    storeData.placeOrder(order);
     return storeData.placeOrder(order);
   }
 

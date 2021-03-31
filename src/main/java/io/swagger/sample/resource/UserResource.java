@@ -75,7 +75,7 @@ public class UserResource {
 
   @DELETE
   @Path("/{id}")
-  @ApiOperation(value = "Delete user by id", notes = "This can only be done by the logged in user.")
+  @ApiOperation(value = "Delete user by id", notes = "This can only be done by the logged in user.", response = AbstractApiResponse.class)
   @ApiResponses(value = { @ApiResponse(code = 404, message = "User not found") })
   public Response deleteUser(@ApiParam() @HeaderParam("token") @DefaultValue("") String token,
       @ApiParam(value = "User id to delete", required = true) @PathParam("id") long id) throws ApiException {
@@ -113,9 +113,9 @@ public class UserResource {
       @ApiParam(value = "The user name for login", required = true) @QueryParam("username") String username,
       @ApiParam(value = "The password for login in clear text", required = true) @QueryParam("password") String password)
       throws ApiException {
-    if (username == "admin" && password == "admin") {
+    if (username.equals("admin") && password.equals("admin")) {
       return Response.ok().header("token", "admin-token").entity(new AbstractApiResponse("Admin Authorized!")).build();
-    } else if (username == "user" && password == "user") {
+    } else if (username.equals("user") && password.equals("user")) {
       return Response.ok().header("token", "user-token").entity(new AbstractApiResponse("User Authorized!")).build();
     }
     throw new ApiException(401, "Invalid username/password supplied");

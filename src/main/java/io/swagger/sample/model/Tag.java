@@ -18,12 +18,15 @@ package io.swagger.sample.model;
 
 import javax.xml.bind.annotation.*;
 
+import io.swagger.annotations.ApiModelProperty;
+
 @XmlRootElement(name = "Tag")
 public class Tag {
   private long id;
   private String name;
 
   @XmlElement(name = "id")
+  @ApiModelProperty(required = true)
   public long getId() {
     return id;
   }
@@ -33,6 +36,7 @@ public class Tag {
   }
 
   @XmlElement(name = "name")
+  @ApiModelProperty(required = true)
   public String getName() {
     return name;
   }

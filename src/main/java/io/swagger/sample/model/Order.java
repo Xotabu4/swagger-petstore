@@ -32,6 +32,7 @@ public class Order {
   private boolean complete;
 
   @XmlElement(name = "id")
+  @ApiModelProperty(required = true)
   public long getId() {
     return id;
   }
@@ -40,6 +41,9 @@ public class Order {
     this.id = id;
   }
 
+  
+  @XmlElement(name = "completed")
+  @ApiModelProperty(required = true)
   public boolean isComplete() {
     return complete;
   }
@@ -49,6 +53,7 @@ public class Order {
   }
 
   @XmlElement(name = "petId")
+  @ApiModelProperty(required = true)
   public long getPetId() {
     return petId;
   }
@@ -58,6 +63,7 @@ public class Order {
   }
 
   @XmlElement(name = "quantity")
+  @ApiModelProperty(required = true)
   public int getQuantity() {
     return quantity;
   }
@@ -67,7 +73,7 @@ public class Order {
   }
 
   @XmlElement(name = "status")
-  @ApiModelProperty(value = "Order Status", allowableValues = "placed, approved, delivered")
+  @ApiModelProperty(required = true, value = "Order Status", allowableValues = "placed, approved, delivered")
   public String getStatus() {
     return status;
   }
@@ -77,6 +83,7 @@ public class Order {
   }
 
   @XmlElement(name = "shipDate")
+  @ApiModelProperty(required = true)
   public Date getShipDate() {
     return shipDate;
   }
